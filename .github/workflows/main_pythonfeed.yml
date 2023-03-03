@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2.5.1
 
       - name: Set up Python version
         uses: actions/setup-python@v2.5.2
@@ -39,7 +39,6 @@ jobs:
           path: |
             . 
             !venv/
-
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -55,9 +54,23 @@ jobs:
           path: .
           
       - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@v2.5.5
         id: deploy-to-webapp
         with:
           app-name: 'pythonfeed'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_93CA7CB955AB49BDBF99480E915E7FD8 }}
+
+      - name: Set deployment URL output
+        run: echo "webapp-url=${{ steps.deploy-to-webapp.outputs.webapp-url }}" >> ${{ github.workspace }}/.env
+          
+      - name: Set deployment environment file
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - run: |
+          az webapp config appsettings set \
+          --resource-group myResourceGroup \
+          --name myApp \
+          --slot Production \
+          --settings @${{ github.workspace }}/.env

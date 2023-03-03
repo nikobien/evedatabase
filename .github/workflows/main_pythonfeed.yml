@@ -60,17 +60,3 @@ jobs:
           app-name: 'pythonfeed'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_93CA7CB955AB49BDBF99480E915E7FD8 }}
-
-      - name: Set deployment URL output
-        run: echo "webapp-url=${{ steps.deploy-to-webapp.outputs.webapp-url }}" >> ${{ github.workspace }}/.env
-          
-      - name: Set deployment environment file
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - run: |
-          az webapp config appsettings set \
-          --resource-group myResourceGroup \
-          --name myApp \
-          --slot Production \
-          --settings @${{ github.workspace }}/.env
